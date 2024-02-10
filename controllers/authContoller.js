@@ -9,8 +9,18 @@ const { use } = require('../routes/job');
 module.exports = {
     createUser:async(req,res)=>{
         const user=req.body;
+        // const userResponse=await admin.auth().createUser({
+        //     email:user.email,
+        //     password:user.password,
+        //     emailVerified:false,
+        //     disabled:false,
+        // })
+        // res.json(userResponse);
+        
         try{
+            
             await admin.auth().getUserByEmail(user.email);
+            // console.log(user.email);
             return res.status(400).json({message:'User already exists'});
         }catch(error){
             if(error.code==='auth/user-not-found'){
@@ -21,17 +31,22 @@ module.exports = {
                         emailVerified:false,
                         disabled:false,
                     })
+                    // res.json(userResponse);
                     console.log(userResponse.uid);
+                    // console.log(userResponse.email);
+                    // console.log(userResponse.password);
                     const newUser=await new User({
                         uid:userResponse.uid,
                         userName:user.userName,
                         email:user.email,
                         password:CryptoJS.AES.encrypt(user.password,process.env.SECRET).toString(),
-                    })
+                    });
                     await newUser.save();
+                    console.log(newUser);
                     res.status(201).json({status:true});
                 }catch(error){
                     res.status(500).json({error:'An error occured while creating account'})
+                    // console.log(newUser);
                 }
             }
         }
